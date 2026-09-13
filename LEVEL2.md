@@ -9,3 +9,5 @@ Mathematical boundaries: zero-to-zero is undefined in this course; physical leng
 Checks: `node tests/calculations.cjs` and `node tests/level2.cjs`. Browser checks cover equation inputs, pointer angle placement and connection, quadrilateral construction, mission completion and persistence.
 
 The root and dist copies support the existing static Vercel setup. Keep both synchronized when editing.
+
+Teaching update: kid-tutor.js supplies small, reasoned steps to every tutorial and all 82 worked answers. Factoring includes a four-product map and number-pair experiment. Test coverage: node tests/teaching.cjs. Load this data after data.js and level2-data.js and before the renderers.

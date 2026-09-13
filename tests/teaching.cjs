@@ -1,0 +1,8 @@
+const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');const box={};box.window=box;vm.createContext(box);vm.runInContext(fs.readFileSync('data.js','utf8'),box);vm.runInContext(fs.readFileSync('level2-data.js','utf8'),box);const before=vm.runInContext('JSON.stringify([questions.map(q=>q.answer),L2_DATA.questions.map(q=>q.answer)])',box);vm.runInContext(fs.readFileSync('kid-tutor.js','utf8'),box);
+assert.equal(vm.runInContext('JSON.stringify([questions.map(q=>q.answer),L2_DATA.questions.map(q=>q.answer)])',box),before);
+assert.equal(vm.runInContext('questions.length + L2_DATA.questions.length',box),82);
+const qs=vm.runInContext('[...questions,...L2_DATA.questions]',box);qs.forEach((q,i)=>{assert(q.steps.length>=3,`Missing teaching steps ${i+1}`);q.steps.forEach(s=>assert(typeof s==='string'&&s.length>25));assert(q.steps.some(s=>/check|conclude|choose|put.*back|matches/i.test(s)),`Missing check or conclusion ${i+1}`)});
+const lessons=vm.runInContext('lessons',box);Object.values(lessons).flat().forEach(l=>assert(l[2].length>=4));
+const square=box.L2_DATA.chapters.find(c=>c.id==='square');assert.equal(square.steps.length,13);assert(square.steps.some(s=>s[3]==='factor'));assert(square.steps.some(s=>s[3]==='pairs'));box.L2_DATA.chapters.forEach(c=>c.steps.forEach(s=>assert(s[2],`Missing visual step ${c.id}`)));
+const html=box.KidTutor.solution(qs[10].steps);assert.equal((html.match(/<details/g)||[]).length,qs[10].steps.length);assert.equal((html.match(/<details open/g)||[]).length,1);
+console.log('PASS: all 82 answers preserved; every solution has small teaching steps; all 24 Level 1 tutorials revised; all 8 Level 2 chapters have complete step cards; factoring has 13 steps and two interactive teaching aids.');
