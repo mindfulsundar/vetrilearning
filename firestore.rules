@@ -1,0 +1,42 @@
+rules_version = '2';
+service cloud.firestore {
+ match /databases/{database}/documents {
+  function verified() { return request.auth != null && request.auth.token.email_verified == true; }
+  function admin() { return verified() && request.auth.token.email == 'csunpandian@gmail.com'; }
+  function owner(uid) { return verified() && request.auth.uid == uid; }
+  function validList(xs, allowed) { return xs is list && xs.size() <= allowed.size() && xs.toSet().size() == xs.size() && xs.hasOnly(allowed); }
+  function valid(d) {
+   return d.keys().hasAll(['email','nickname','avatar','l1','l2','l3','assisted','lessons','visited','sessions','createdAt','lastActive'])
+    && d.keys().hasOnly(['email','nickname','avatar','l1','l2','l3','assisted','lessons','visited','sessions','createdAt','lastActive'])
+    && d.email == request.auth.token.email
+    && d.nickname is string && d.nickname.size() > 0 && d.nickname.size() <= 24
+    && d.avatar in ['🌱','🦊','🐼','🚀','🦉','🐢']
+    && validList(d.l1, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50])
+    && validList(d.l2, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31])
+    && validList(d.l3, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23])
+    && validList(d.assisted, d.l1)
+    && validList(d.lessons, ['lcm', 'hcf', 'fractions', 'mixed', 'decimals', 'discounts', 'simple', 'compound'])
+    && validList(d.visited, ['lcm', 'hcf', 'fractions', 'mixed', 'decimals', 'discounts', 'simple', 'compound', 'l2-zero', 'l2-linear', 'l2-square', 'l2-cube', 'l2-angles', 'l2-draw', 'l2-missing', 'l2-quads', 'l3-rational', 'l3-linear', 'l3-quads', 'l3-roots', 'l3-cuberoots', 'l3-compare'])
+    && d.sessions is int && d.sessions >= 1
+    && d.createdAt is timestamp && d.lastActive == request.time;
+  }
+  match /learners/{uid} {
+   allow get: if owner(uid) || admin();
+   allow list: if admin();
+   allow create: if owner(uid) && valid(request.resource.data) && request.resource.data.createdAt == request.time && request.resource.data.sessions == 1;
+   allow update: if owner(uid) && valid(request.resource.data)
+    && request.resource.data.createdAt == resource.data.createdAt
+    && request.resource.data.email == resource.data.email
+    && request.resource.data.sessions >= resource.data.sessions
+    && request.resource.data.sessions <= resource.data.sessions + 1
+    && request.resource.data.l1.hasAll(resource.data.l1)
+    && request.resource.data.l2.hasAll(resource.data.l2)
+    && request.resource.data.l3.hasAll(resource.data.l3)
+    && request.resource.data.assisted.hasAll(resource.data.assisted)
+    && request.resource.data.lessons.hasAll(resource.data.lessons)
+    && request.resource.data.visited.hasAll(resource.data.visited);
+   allow delete: if false;
+  }
+  match /{document=**} { allow read, write: if false; }
+ }
+}

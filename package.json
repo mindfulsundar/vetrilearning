@@ -1,0 +1,19 @@
+{
+  "name": "mathcraft",
+  "version": "2.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs",
+    "test": "node tests/calculations.cjs && node tests/level2.cjs && node tests/teaching.cjs && node tests/level3.cjs && node tests/accounts.mjs",
+    "test:rules": "firebase emulators:exec --only firestore --project demo-mathcraft \"node tests/accounts-rules.mjs\""
+  },
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "^5.0.2",
+    "esbuild": "^0.28.2",
+    "firebase-tools": "^15.30.0"
+  },
+  "dependencies": {
+    "firebase": "^12.19.0"
+  }
+}
